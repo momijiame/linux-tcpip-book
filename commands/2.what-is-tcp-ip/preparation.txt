@@ -1,0 +1,16 @@
+----------
+$ sudo apt update
+$ sudo apt -y install \
+    iproute2 \
+    iputils-ping \
+    traceroute \
+    tcpdump \
+    dnsmasq \
+    netcat-openbsd \
+    python3 \
+    curl \
+    wget \
+    gawk \
+    dnsutils \
+    procps
+----------

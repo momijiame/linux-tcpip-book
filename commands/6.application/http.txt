@@ -1,0 +1,78 @@
+----------
+$ mkdir -p /var/tmp/http-home
+$ cd /var/tmp/http-home/
+----------
+
+----------
+$ cat << 'EOF' > index.html
+<!doctype html>
+<html>
+  <head>
+    <title>Hello, World</title>
+  </head>
+  <body>
+    <h1>Hello, World</h1>
+  </body>
+</html>
+EOF
+----------
+
+----------
+$ ls
+index.html
+$ cat index.html 
+<!doctype html>
+<html>
+  <head>
+    <title>Hello, World</title>
+  </head>
+  <body>
+    <h1>Hello, World</h1>
+  </body>
+</html>
+----------
+
+----------
+$ sudo python3 -m http.server -b 127.0.0.1 80
+Serving HTTP on 127.0.0.1 port 80 (http://127.0.0.1:80/) ...
+----------
+
+----------
+$ echo -en "GET / HTTP/1.0\r\n\r\n" | nc 127.0.0.1 80
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.6.8
+Date: Sat, 21 Dec 2019 06:57:13 GMT
+Content-type: text/html
+Content-Length: 127
+Last-Modified: Sat, 21 Dec 2019 03:44:25 GMT
+
+<!doctype html>
+<html>
+  <head>
+    <title>Hello, World</title>
+  </head>
+  <body>
+    <h1>Hello, World</h1>
+  </body>
+</html>
+----------
+
+----------
+$ curl -X GET -D - http://127.0.0.1/
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.6.8
+Date: Sat, 21 Dec 2019 08:39:47 GMT
+Content-type: text/html
+Content-Length: 127
+Last-Modified: Sat, 21 Dec 2019 03:44:25 GMT
+
+<!doctype html>
+<html>
+  <head>
+    <title>Hello, World</title>
+  </head>
+  <body>
+    <h1>Hello, World</h1>
+  </body>
+</html>
+----------

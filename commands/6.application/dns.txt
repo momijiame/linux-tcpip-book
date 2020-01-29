@@ -1,0 +1,40 @@
+----------
+$ ping -c 3 localhost
+PING localhost (127.0.0.1) 56(84) bytes of data.
+64 bytes from localhost (127.0.0.1): icmp_seq=1 ttl=64 time=0.040 ms
+64 bytes from localhost (127.0.0.1): icmp_seq=2 ttl=64 time=0.052 ms
+64 bytes from localhost (127.0.0.1): icmp_seq=3 ttl=64 time=0.068 ms
+
+--- localhost ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2038ms
+rtt min/avg/max/mdev = 0.040/0.053/0.068/0.012 ms
+----------
+
+----------
+$ grep 127.0.0.1 /etc/hosts
+127.0.0.1	localhost
+----------
+
+----------
+$ sudo tcpdump -tnl -i any "udp and port 53"
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on any, link-type LINUX_SLL (Linux cooked), capture size 262144 bytes
+IP 10.0.2.15.51746 > 8.8.8.8.53: 1521+ [1au] A? example.org. (52)
+IP 8.8.8.8.53 > 10.0.2.15.51746: 1521$ 1/0/1 A 93.184.216.34 (56)
+----------
+
+----------
+$ dig +short @8.8.8.8 example.org A
+93.184.216.34
+----------
+
+----------
+$ grep nameserver /etc/resolv.conf
+nameserver 127.0.0.53
+----------
+
+----------
+$ sudo ss -tulnp | grep :53
+udp   UNCONN  0        0              127.0.0.53%lo:53            0.0.0.0:*      users:(("systemd-resolve",pid=747,fd=12))
+tcp   LISTEN  0        128            127.0.0.53%lo:53            0.0.0.0:*      users:(("systemd-resolve",pid=747,fd=13))
+----------

@@ -1,0 +1,120 @@
+----------
+$ sudo ip netns delete ns1
+$ sudo ip netns delete ns2
+----------
+
+----------
+$ for ns in $(ip netns list | awk '{print $1}'); do sudo ip netns delete $ns; done
+----------
+
+----------
+$ sudo ip netns add ns1
+$ sudo ip netns add router
+$ sudo ip netns add ns2
+----------
+
+----------
+$ sudo ip link add ns1-veth0 type veth peer name gw-veth0
+$ sudo ip link add ns2-veth0 type veth peer name gw-veth1
+----------
+
+----------
+$ sudo ip link set ns1-veth0 netns ns1
+$ sudo ip link set gw-veth0 netns router
+$ sudo ip link set gw-veth1 netns router
+$ sudo ip link set ns2-veth0 netns ns2
+----------
+
+----------
+$ sudo ip netns exec ns1 ip link set ns1-veth0 up
+$ sudo ip netns exec router ip link set gw-veth0 up
+$ sudo ip netns exec router ip link set gw-veth1 up
+$ sudo ip netns exec ns2 ip link set ns2-veth0 up
+----------
+
+----------
+$ sudo ip netns exec ns1 ip address add 192.0.2.1/24 dev ns1-veth0
+$ sudo ip netns exec router ip address add 192.0.2.254/24 dev gw-veth0
+----------
+
+----------
+$ sudo ip netns exec router ip address add 198.51.100.254/24 dev gw-veth1
+$ sudo ip netns exec ns2 ip address add 198.51.100.1/24 dev ns2-veth0
+----------
+
+----------
+$ sudo ip netns exec ns1 ping -c 3 192.0.2.254 -I 192.0.2.1
+PING 192.0.2.254 (192.0.2.254) from 192.0.2.1 : 56(84) bytes of data.
+64 bytes from 192.0.2.254: icmp_seq=1 ttl=64 time=0.059 ms
+64 bytes from 192.0.2.254: icmp_seq=2 ttl=64 time=0.043 ms
+64 bytes from 192.0.2.254: icmp_seq=3 ttl=64 time=0.052 ms
+
+--- 192.0.2.254 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2033ms
+rtt min/avg/max/mdev = 0.043/0.051/0.059/0.008 ms
+----------
+
+----------
+$ sudo ip netns exec ns2 ping -c 3 198.51.100.254 -I 198.51.100.1
+PING 198.51.100.254 (198.51.100.254) from 198.51.100.1 : 56(84) bytes of data.
+64 bytes from 198.51.100.254: icmp_seq=1 ttl=64 time=0.099 ms
+64 bytes from 198.51.100.254: icmp_seq=2 ttl=64 time=0.061 ms
+64 bytes from 198.51.100.254: icmp_seq=3 ttl=64 time=0.155 ms
+
+--- 198.51.100.254 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2051ms
+rtt min/avg/max/mdev = 0.061/0.105/0.155/0.038 ms
+----------
+
+----------
+$ sudo ip netns exec ns1 ping -c 3 198.51.100.1 -I 192.0.2.1
+PING 198.51.100.1 (198.51.100.1) from 192.0.2.1 : 56(84) bytes of data.
+ping: sendmsg: Network is unreachable
+ping: sendmsg: Network is unreachable
+ping: sendmsg: Network is unreachable
+
+--- 198.51.100.1 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2054ms
+----------
+
+----------
+$ sudo ip netns exec ns1 ip route show
+192.0.2.0/24 dev ns1-veth0 proto kernel scope link src 192.0.2.1 
+----------
+
+----------
+$ sudo ip netns exec ns1 ip route add default via 192.0.2.254
+----------
+
+----------
+$ sudo ip netns exec ns2 ip route add default via 198.51.100.254
+----------
+
+----------
+$ sudo ip netns exec ns1 ping -c 3 198.51.100.1 -I 192.0.2.1
+PING 198.51.100.1 (198.51.100.1) from 192.0.2.1 : 56(84) bytes of data.
+
+--- 198.51.100.1 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2038ms
+----------
+
+----------
+$ sudo ip netns exec router sysctl net.ipv4.ip_forward=0
+----------
+
+----------
+$ sudo ip netns exec router sysctl net.ipv4.ip_forward=1
+net.ipv4.ip_forward = 1
+----------
+
+----------
+$ sudo ip netns exec ns1 ping -c 3 198.51.100.1 -I 192.0.2.1
+PING 198.51.100.1 (198.51.100.1) from 192.0.2.1 : 56(84) bytes of data.
+64 bytes from 198.51.100.1: icmp_seq=1 ttl=63 time=0.034 ms
+64 bytes from 198.51.100.1: icmp_seq=2 ttl=63 time=0.063 ms
+64 bytes from 198.51.100.1: icmp_seq=3 ttl=63 time=0.050 ms
+
+--- 198.51.100.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2053ms
+rtt min/avg/max/mdev = 0.034/0.049/0.063/0.011 ms
+----------

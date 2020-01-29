@@ -1,0 +1,108 @@
+----------
+$ for ns in $(ip netns list | awk '{print $1}'); do sudo ip netns delete $ns; done
+----------
+
+----------
+$ sudo ip netns add ns1
+$ sudo ip netns add ns2
+$ sudo ip netns add ns3
+----------
+
+----------
+$ sudo ip link add ns1-veth0 type veth peer name ns1-br0
+$ sudo ip link add ns2-veth0 type veth peer name ns2-br0
+$ sudo ip link add ns3-veth0 type veth peer name ns3-br0
+----------
+
+----------
+$ sudo ip link set ns1-veth0 netns ns1
+$ sudo ip link set ns2-veth0 netns ns2
+$ sudo ip link set ns3-veth0 netns ns3
+----------
+
+----------
+$ sudo ip netns exec ns1 ip link set ns1-veth0 up
+$ sudo ip netns exec ns2 ip link set ns2-veth0 up
+$ sudo ip netns exec ns3 ip link set ns3-veth0 up
+----------
+
+----------
+$ sudo ip netns exec ns1 ip address add 192.0.2.1/24 dev ns1-veth0
+$ sudo ip netns exec ns2 ip address add 192.0.2.2/24 dev ns2-veth0
+$ sudo ip netns exec ns3 ip address add 192.0.2.3/24 dev ns3-veth0
+----------
+
+----------
+$ sudo ip netns exec ns1 ip link set dev ns1-veth0 address 00:00:5E:00:53:01
+$ sudo ip netns exec ns2 ip link set dev ns2-veth0 address 00:00:5E:00:53:02
+$ sudo ip netns exec ns3 ip link set dev ns3-veth0 address 00:00:5E:00:53:03
+----------
+
+----------
+$ sudo ip link add dev br0 type bridge
+$ sudo ip link set br0 up
+----------
+
+----------
+$ sudo ip link set ns1-br0 master br0
+$ sudo ip link set ns2-br0 master br0
+$ sudo ip link set ns3-br0 master br0
+$ sudo ip link set ns1-br0 up
+$ sudo ip link set ns2-br0 up
+$ sudo ip link set ns3-br0 up
+----------
+
+----------
+$ sudo ip netns exec ns1 ping -c 3 192.0.2.2 -I 192.0.2.1
+PING 192.0.2.2 (192.0.2.2) from 192.0.2.1 : 56(84) bytes of data.
+64 bytes from 192.0.2.2: icmp_seq=1 ttl=64 time=0.061 ms
+64 bytes from 192.0.2.2: icmp_seq=2 ttl=64 time=0.050 ms
+64 bytes from 192.0.2.2: icmp_seq=3 ttl=64 time=0.052 ms
+
+--- 192.0.2.2 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2201ms
+rtt min/avg/max/mdev = 0.050/0.054/0.061/0.007 ms
+----------
+
+----------
+$ sudo ip netns exec ns1 ping -c 3 192.0.2.3 -I 192.0.2.1
+PING 192.0.2.3 (192.0.2.3) from 192.0.2.1 : 56(84) bytes of data.
+64 bytes from 192.0.2.3: icmp_seq=1 ttl=64 time=0.066 ms
+64 bytes from 192.0.2.3: icmp_seq=2 ttl=64 time=0.063 ms
+64 bytes from 192.0.2.3: icmp_seq=3 ttl=64 time=0.062 ms
+
+--- 192.0.2.3 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2038ms
+rtt min/avg/max/mdev = 0.062/0.063/0.066/0.009 ms
+----------
+
+----------
+$ sudo ip netns exec ns1 ping 192.0.2.2 -I 192.0.2.1
+----------
+
+----------
+$ sudo ip netns exec ns2 tcpdump -tnel -i ns2-veth0 icmp
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on ns2-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+...(省略)...
+00:00:5e:00:53:01 > 00:00:5e:00:53:02, ethertype IPv4 (0x0800), length 98: 192.0.2.1 > 192.0.2.2: ICMP echo request, id 2972, seq 101, length 64
+00:00:5e:00:53:02 > 00:00:5e:00:53:01, ethertype IPv4 (0x0800), length 98: 192.0.2.2 > 192.0.2.1: ICMP echo reply, id 2972, seq 101, length 64
+00:00:5e:00:53:01 > 00:00:5e:00:53:02, ethertype IPv4 (0x0800), length 98: 192.0.2.1 > 192.0.2.2: ICMP echo request, id 2972, seq 102, length 64
+00:00:5e:00:53:02 > 00:00:5e:00:53:01, ethertype IPv4 (0x0800), length 98: 192.0.2.2 > 192.0.2.1: ICMP echo reply, id 2972, seq 102, length 64
+00:00:5e:00:53:01 > 00:00:5e:00:53:02, ethertype IPv4 (0x0800), length 98: 192.0.2.1 > 192.0.2.2: ICMP echo request, id 2972, seq 103, length 64
+00:00:5e:00:53:02 > 00:00:5e:00:53:01, ethertype IPv4 (0x0800), length 98: 192.0.2.2 > 192.0.2.1: ICMP echo reply, id 2972, seq 103, length 64
+...(省略)
+----------
+
+----------
+$ sudo ip netns exec ns3 tcpdump -tnel -i ns3-veth0 icmp
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on ns3-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+----------
+
+----------
+$ bridge fdb show br br0 | grep -i 00:00:5e
+00:00:5e:00:53:01 dev ns1-br0 master br0 
+00:00:5e:00:53:02 dev ns2-br0 master br0 
+00:00:5e:00:53:03 dev ns3-br0 master br0 
+----------
