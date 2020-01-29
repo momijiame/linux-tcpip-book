@@ -1,0 +1,117 @@
+----------
+$ for ns in $(ip netns list | awk '{print $1}'); do sudo ip netns delete $ns; done
+----------
+
+----------
+$ sudo ip netns add lan
+$ sudo ip netns add router
+$ sudo ip netns add wan
+----------
+
+----------
+$ sudo ip link add lan-veth0 type veth peer name gw-veth0
+$ sudo ip link add wan-veth0 type veth peer name gw-veth1
+----------
+
+----------
+$ sudo ip link set lan-veth0 netns lan
+$ sudo ip link set gw-veth0 netns router
+$ sudo ip link set gw-veth1 netns router
+$ sudo ip link set wan-veth0 netns wan
+----------
+
+----------
+$ sudo ip netns exec lan ip link set lan-veth0 up
+$ sudo ip netns exec router ip link set gw-veth0 up
+$ sudo ip netns exec router ip link set gw-veth1 up
+$ sudo ip netns exec wan ip link set wan-veth0 up
+----------
+
+----------
+$ sudo ip netns exec lan ip address add 192.0.2.1/24 dev lan-veth0
+$ sudo ip netns exec lan ip route add default via 192.0.2.254
+----------
+
+----------
+$ sudo ip netns exec router ip address add 192.0.2.254/24 dev gw-veth0
+$ sudo ip netns exec router ip address add 203.0.113.254/24 dev gw-veth1
+$ sudo ip netns exec router sysctl net.ipv4.ip_forward=1
+----------
+
+----------
+$ sudo ip netns exec wan ip address add 203.0.113.1/24 dev wan-veth0
+$ sudo ip netns exec wan ip route add default via 203.0.113.254
+----------
+
+----------
+$ sudo ip netns exec router iptables -t nat -L
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination         
+----------
+
+----------
+$ sudo ip netns exec router iptables -t nat \
+    -A POSTROUTING \
+    -s 192.0.2.0/24 \
+    -o gw-veth1 \
+    -j MASQUERADE
+----------
+
+----------
+$ sudo ip netns exec router iptables -t nat -L
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination         
+MASQUERADE  all  --  192.0.2.0/24         anywhere       
+----------
+
+----------
+$ sudo ip netns exec lan ping 203.0.113.1
+PING 203.0.113.1 (203.0.113.1) 56(84) bytes of data.
+64 bytes from 203.0.113.1: icmp_seq=1 ttl=63 time=0.080 ms
+64 bytes from 203.0.113.1: icmp_seq=2 ttl=63 time=0.091 ms
+64 bytes from 203.0.113.1: icmp_seq=3 ttl=63 time=0.083 ms
+
+...(省略)
+----------
+
+----------
+$ sudo ip netns exec lan tcpdump -tnl -i lan-veth0 icmp
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lan-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+IP 192.0.2.1 > 203.0.113.1: ICMP echo request, id 3059, seq 202, length 64
+IP 203.0.113.1 > 192.0.2.1: ICMP echo reply, id 3059, seq 202, length 64
+IP 192.0.2.1 > 203.0.113.1: ICMP echo request, id 3059, seq 203, length 64
+IP 203.0.113.1 > 192.0.2.1: ICMP echo reply, id 3059, seq 203, length 64
+IP 192.0.2.1 > 203.0.113.1: ICMP echo request, id 3059, seq 204, length 64
+IP 203.0.113.1 > 192.0.2.1: ICMP echo reply, id 3059, seq 204, length 64
+----------
+
+----------
+$ sudo ip netns exec wan tcpdump -tnl -i wan-veth0 icmp
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on wan-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+IP 203.0.113.254 > 203.0.113.1: ICMP echo request, id 3059, seq 214, length 64
+IP 203.0.113.1 > 203.0.113.254: ICMP echo reply, id 3059, seq 214, length 64
+IP 203.0.113.254 > 203.0.113.1: ICMP echo request, id 3059, seq 215, length 64
+IP 203.0.113.1 > 203.0.113.254: ICMP echo reply, id 3059, seq 215, length 64
+IP 203.0.113.254 > 203.0.113.1: ICMP echo request, id 3059, seq 216, length 64
+IP 203.0.113.1 > 203.0.113.254: ICMP echo reply, id 3059, seq 216, length 64
+----------

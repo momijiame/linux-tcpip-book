@@ -1,0 +1,63 @@
+----------
+$ nc -lnv 127.0.0.1 54321
+Listening on [127.0.0.1] (family 0, port 54321)
+----------
+
+----------
+$ sudo tcpdump -i lo -tnlA "tcp and port 54321"
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
+----------
+
+----------
+$ nc 127.0.0.1 54321
+----------
+
+----------
+$ nc -lnv 127.0.0.1 54321
+Listening on [127.0.0.1] (family 0, port 54321)
+Connection from 127.0.0.1 47006 received!
+----------
+
+----------
+$ sudo tcpdump -i lo -tnlA "tcp and port 54321"
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
+IP 127.0.0.1.47006 > 127.0.0.1.54321: Flags [S], seq 3237419147, win 43690, options [mss 65495,sackOK,TS val 2733059353 ecr 0,nop,wscale 7], length 0
+E..<.{@.@..>...........1.............0.........
+..-.........
+IP 127.0.0.1.54321 > 127.0.0.1.47006: Flags [S.], seq 3127977843, ack 3237419148, win 43690, options [mss 65495,sackOK,TS val 2733059353 ecr 2733059353,nop,wscale 7], length 0
+E..<..@.@.<..........1...q's.........0.........
+..-...-.....
+IP 127.0.0.1.47006 > 127.0.0.1.54321: Flags [.], ack 1, win 342, options [nop,nop,TS val 2733059353 ecr 2733059353], length 0
+E..4.|@.@..E...........1.....q't...V.(.....
+..-...-.
+----------
+
+----------
+$ nc 127.0.0.1 54321
+Hello, World!
+----------
+
+----------
+$ nc -lnv 127.0.0.1 54321
+Listening on [127.0.0.1] (family 0, port 54321)
+Connection from 127.0.0.1 47006 received!
+Hello, World!
+----------
+
+----------
+$ sudo tcpdump -i lo -tnlA "tcp and port 54321"
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
+
+...(省略)...
+
+IP 127.0.0.1.47006 > 127.0.0.1.54321: Flags [P.], seq 1:15, ack 1, win 342, options [nop,nop,TS val 2733228454 ecr 2733059353], length 14
+E..B.}@.@..6...........1.....q't...V.6.....
+......-.Hello, World!
+
+IP 127.0.0.1.54321 > 127.0.0.1.47006: Flags [.], ack 15, win 342, options [nop,nop,TS val 2733228454 ecr 2733228454], length 0
+E..4..@.@..=.........1...q't.......V.(.....
+........
+----------

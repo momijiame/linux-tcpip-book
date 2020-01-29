@@ -1,0 +1,24 @@
+----------
+$ wget https://raw.githubusercontent.com/momijiame/linux-tcpip-book/master/sources/socket/httpclient.py
+----------
+
+----------
+$ python3 httpclient.py
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.6.8
+Date: Sun, 22 Dec 2019 13:40:25 GMT
+Content-type: text/html
+Content-Length: 127
+Last-Modified: Sat, 21 Dec 2019 03:44:25 GMT
+
+<!doctype html>
+<html>
+  <head>
+    <title>Hello, World</title>
+  </head>
+  <body>
+    <h1>Hello, World</h1>
+  </body>
+</html>
+
+----------

@@ -1,0 +1,29 @@
+----------
+$ wget https://raw.githubusercontent.com/momijiame/linux-tcpip-book/master/sources/socket/echoserver.py
+----------
+
+----------
+$ python3 echoserver.py
+starting server ...
+accepted from 127.0.0.1:44692
+echo: b'Hello, World!\n'
+----------
+
+----------
+$ nc 127.0.0.1 54321
+Hello, World!
+Hello, World!
+----------
+
+----------
+$ sudo ss -tlnp
+State        Recv-Q        Send-Q                Local Address:Port                  Peer Address:Port                                                          
+LISTEN       0             128                       127.0.0.1:54321                      0.0.0.0:*            users:(("python3",pid=5038,fd=3))                
+LISTEN       0             128                   127.0.0.53%lo:53                         0.0.0.0:*            users:(("systemd-resolve",pid=747,fd=13))        
+LISTEN       0             128                         0.0.0.0:22                         0.0.0.0:*            users:(("sshd",pid=996,fd=3))                    
+LISTEN       0             128                       127.0.0.1:6010                       0.0.0.0:*            users:(("sshd",pid=4815,fd=10))                  
+LISTEN       0             128                       127.0.0.1:6011                       0.0.0.0:*            users:(("sshd",pid=4913,fd=10))                  
+LISTEN       0             128                            [::]:22                            [::]:*            users:(("sshd",pid=996,fd=4))                    
+LISTEN       0             128                           [::1]:6010                          [::]:*            users:(("sshd",pid=4815,fd=9))                   
+LISTEN       0             128                           [::1]:6011                          [::]:*            users:(("sshd",pid=4913,fd=9))                   
+----------

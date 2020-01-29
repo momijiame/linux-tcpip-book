@@ -1,0 +1,23 @@
+----------
+$ wget https://raw.githubusercontent.com/momijiame/linux-tcpip-book/master/sources/socket/addserver.py
+$ wget https://raw.githubusercontent.com/momijiame/linux-tcpip-book/master/sources/socket/addclient.py
+----------
+
+
+----------
+$ python3 addserver.py 
+starting server ...
+accepted from 127.0.0.1:44754
+received: b'\x00\x00\x03\xe8\x00\x00\x07\xd0'
+operand1: 1000, operand2: 2000
+result: 3000
+sent: b'\x00\x00\x00\x00\x00\x00\x0b\xb8'
+----------
+
+----------
+$ python3 addclient.py 
+operand1: 1000, operand2: 2000
+sent: b'\x00\x00\x03\xe8\x00\x00\x07\xd0'
+received: b'\x00\x00\x00\x00\x00\x00\x0b\xb8'
+result: 3000
+----------

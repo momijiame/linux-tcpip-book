@@ -1,0 +1,55 @@
+----------
+$ sudo ip netns exec router iptables -t nat \
+    -A PREROUTING \
+    -p tcp \
+    --dport 54321 \
+    -d 203.0.113.254 \
+    -j DNAT \
+    --to-destination 192.0.2.1
+----------
+
+----------
+$ sudo ip netns exec router iptables -t nat -L
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination         
+DNAT       tcp  --  anywhere             203.0.113.254        tcp dpt:54321 to:192.0.2.1
+
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination         
+MASQUERADE  all  --  192.0.2.0/24         anywhere            
+----------
+
+----------
+$ sudo ip netns exec lan nc -lnv 54321
+Listening on [0.0.0.0] (family 0, port 54321)
+Connection from 203.0.113.1 38966 received!
+Hello, World!
+----------
+
+----------
+$ sudo ip netns exec wan tcpdump -tnl -i wan-veth0 "tcp and port 54321"
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on wan-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+IP 203.0.113.1.38966 > 203.0.113.254.54321: Flags [P.], seq 293054098:293054112, ack 1985223630, win 229, options [nop,nop,TS val 982243296 ecr 3183520966], length 14
+IP 203.0.113.254.54321 > 203.0.113.1.38966: Flags [.], ack 14, win 227, options [nop,nop,TS val 3183556354 ecr 982243296], length 0
+----------
+
+----------
+$ sudo ip netns exec wan nc 203.0.113.254 54321
+Hello, World!
+Hello, World!
+----------
+
+----------
+$ sudo ip netns exec lan tcpdump -tnl -i lan-veth0 "tcp and port 54321"
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lan-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+IP 203.0.113.1.38966 > 192.0.2.1.54321: Flags [P.], seq 293054112:293054126, ack 1985223630, win 229, options [nop,nop,TS val 982287087 ecr 3183556354], length 14
+IP 192.0.2.1.54321 > 203.0.113.1.38966: Flags [.], ack 14, win 227, options [nop,nop,TS val 3183600145 ecr 982287087], length 0
+----------

@@ -1,0 +1,105 @@
+----------
+$ for ns in $(ip netns list | awk '{print $1}'); do sudo ip netns delete $ns; done
+----------
+
+----------
+$ sudo ip netns add ns1
+$ sudo ip netns add router
+$ sudo ip netns add ns2
+----------
+
+----------
+$ sudo ip link add ns1-veth0 type veth peer name gw-veth0
+$ sudo ip link add ns2-veth0 type veth peer name gw-veth1
+----------
+
+----------
+$ sudo ip link set ns1-veth0 netns ns1
+$ sudo ip link set gw-veth0 netns router
+$ sudo ip link set gw-veth1 netns router
+$ sudo ip link set ns2-veth0 netns ns2
+----------
+
+----------
+$ sudo ip netns exec ns1 ip link set ns1-veth0 up
+$ sudo ip netns exec router ip link set gw-veth0 up
+$ sudo ip netns exec router ip link set gw-veth1 up
+$ sudo ip netns exec ns2 ip link set ns2-veth0 up
+----------
+
+----------
+$ sudo ip netns exec ns1 ip address add 192.0.2.1/24 dev ns1-veth0
+$ sudo ip netns exec router ip address add 192.0.2.254/24 dev gw-veth0
+$ sudo ip netns exec router ip address add 198.51.100.254/24 dev gw-veth1
+$ sudo ip netns exec ns2 ip address add 198.51.100.1/24 dev ns2-veth0
+----------
+
+----------
+$ sudo ip netns exec ns1 ip route add default via 192.0.2.254
+$ sudo ip netns exec ns2 ip route add default via 198.51.100.254
+----------
+
+----------
+$ sudo ip netns exec router sysctl net.ipv4.ip_forward=1
+net.ipv4.ip_forward = 1
+----------
+
+----------
+$ sudo ip netns exec ns1 ip link set dev ns1-veth0 address 00:00:5E:00:53:11
+$ sudo ip netns exec router ip link set dev gw-veth0 address 00:00:5E:00:53:12
+$ sudo ip netns exec router ip link set dev gw-veth1 address 00:00:5E:00:53:21
+$ sudo ip netns exec ns2 ip link set dev ns2-veth0 address 00:00:5E:00:53:22
+----------
+
+----------
+$ sudo ip netns exec router tcpdump -tnel -i gw-veth0 icmp or arp
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on gw-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+00:00:5e:00:53:11 > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Request who-has 192.0.2.254 tell 192.0.2.1, length 28
+00:00:5e:00:53:12 > 00:00:5e:00:53:11, ethertype ARP (0x0806), length 42: Reply 192.0.2.254 is-at 00:00:5e:00:53:12, length 28
+00:00:5e:00:53:11 > 00:00:5e:00:53:12, ethertype IPv4 (0x0800), length 98: 192.0.2.1 > 198.51.100.1: ICMP echo request, id 24652, seq 1, length 64
+00:00:5e:00:53:12 > 00:00:5e:00:53:11, ethertype IPv4 (0x0800), length 98: 198.51.100.1 > 192.0.2.1: ICMP echo reply, id 24652, seq 1, length 64
+00:00:5e:00:53:11 > 00:00:5e:00:53:12, ethertype IPv4 (0x0800), length 98: 192.0.2.1 > 198.51.100.1: ICMP echo request, id 24652, seq 2, length 64
+00:00:5e:00:53:12 > 00:00:5e:00:53:11, ethertype IPv4 (0x0800), length 98: 198.51.100.1 > 192.0.2.1: ICMP echo reply, id 24652, seq 2, length 64
+00:00:5e:00:53:11 > 00:00:5e:00:53:12, ethertype IPv4 (0x0800), length 98: 192.0.2.1 > 198.51.100.1: ICMP echo request, id 24652, seq 3, length 64
+00:00:5e:00:53:12 > 00:00:5e:00:53:11, ethertype IPv4 (0x0800), length 98: 198.51.100.1 > 192.0.2.1: ICMP echo reply, id 24652, seq 3, length 64
+----------
+
+----------
+$ sudo ip netns exec ns1 ip route show
+default via 192.0.2.254 dev ns1-veth0 
+192.0.2.0/24 dev ns1-veth0 proto kernel scope link src 192.0.2.1 
+----------
+
+----------
+$ sudo ip netns exec router tcpdump -tnel -i gw-veth1 icmp or arp
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on gw-veth1, link-type EN10MB (Ethernet), capture size 262144 bytes
+00:00:5e:00:53:21 > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Request who-has 198.51.100.1 tell 198.51.100.254, length 28
+00:00:5e:00:53:22 > 00:00:5e:00:53:21, ethertype ARP (0x0806), length 42: Reply 198.51.100.1 is-at 00:00:5e:00:53:22, length 28
+00:00:5e:00:53:21 > 00:00:5e:00:53:22, ethertype IPv4 (0x0800), length 98: 192.0.2.1 > 198.51.100.1: ICMP echo request, id 24652, seq 1, length 64
+00:00:5e:00:53:22 > 00:00:5e:00:53:21, ethertype IPv4 (0x0800), length 98: 198.51.100.1 > 192.0.2.1: ICMP echo reply, id 24652, seq 1, length 64
+00:00:5e:00:53:21 > 00:00:5e:00:53:22, ethertype IPv4 (0x0800), length 98: 192.0.2.1 > 198.51.100.1: ICMP echo request, id 24652, seq 2, length 64
+00:00:5e:00:53:22 > 00:00:5e:00:53:21, ethertype IPv4 (0x0800), length 98: 198.51.100.1 > 192.0.2.1: ICMP echo reply, id 24652, seq 2, length 64
+00:00:5e:00:53:21 > 00:00:5e:00:53:22, ethertype IPv4 (0x0800), length 98: 192.0.2.1 > 198.51.100.1: ICMP echo request, id 24652, seq 3, length 64
+00:00:5e:00:53:22 > 00:00:5e:00:53:21, ethertype IPv4 (0x0800), length 98: 198.51.100.1 > 192.0.2.1: ICMP echo reply, id 24652, seq 3, length 64
+----------
+
+----------
+$ sudo ip netns exec ns1 ping -c 3 198.51.100.1 -I 192.0.2.1
+PING 198.51.100.1 (198.51.100.1) from 192.0.2.1 : 56(84) bytes of data.
+64 bytes from 198.51.100.1: icmp_seq=1 ttl=63 time=0.046 ms
+64 bytes from 198.51.100.1: icmp_seq=2 ttl=63 time=0.053 ms
+64 bytes from 198.51.100.1: icmp_seq=3 ttl=63 time=0.052 ms
+
+--- 198.51.100.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 0.046/0.050/0.053/0.006 ms
+----------
+
+----------
+$ sudo ip netns exec router ip route show
+192.0.2.0/24 dev gw-veth0 proto kernel scope link src 192.0.2.254 
+198.51.100.0/24 dev gw-veth1 proto kernel scope link src 198.51.100.254
+----------
+

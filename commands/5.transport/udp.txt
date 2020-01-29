@@ -1,0 +1,62 @@
+----------
+$ nc -ulnv 127.0.0.1 54321
+Listening on [127.0.0.1] (family 0, port 54321)
+----------
+
+----------
+$ nc -u 127.0.0.1 54321
+----------
+
+----------
+$ sudo tcpdump -i lo -tnlA "udp and port 54321"
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
+----------
+
+----------
+$ nc -u 127.0.0.1 54321
+Hello, World!
+----------
+
+----------
+$ nc -ulnv 127.0.0.1 54321
+Listening on [127.0.0.1] (family 0, port 54321)
+Connection from 127.0.0.1 55791 received!
+Hello, World!
+----------
+
+----------
+$ sudo tcpdump -i lo -tnlA "udp and port 54321"
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
+IP 127.0.0.1.55791 > 127.0.0.1.54321: UDP, length 14
+E..*
+(@.@.2............1...)Hello, World!
+----------
+
+----------
+$ nc -ulnv 127.0.0.1 54321
+Listening on [127.0.0.1] (family 0, port 54321)
+Connection from 127.0.0.1 55791 received!
+Hello, World!
+Reply, World!
+----------
+
+----------
+$ nc -u 127.0.0.1 54321
+Hello, World!
+Reply, World!
+----------
+
+----------
+$ sudo tcpdump -i lo -tnlA "udp and port 54321"
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo, link-type EN10MB (Ethernet), capture size 262144 bytes
+IP 127.0.0.1.55791 > 127.0.0.1.54321: UDP, length 14
+E..*
+(@.@.2............1...)Hello, World!
+
+IP 127.0.0.1.54321 > 127.0.0.1.55791: UDP, length 14
+E..*
+A@.@.2..........1.....)Reply, World!
+----------

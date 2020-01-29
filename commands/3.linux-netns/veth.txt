@@ -1,0 +1,71 @@
+----------
+$ sudo ip netns add ns1
+$ sudo ip netns add ns2
+----------
+
+----------
+$ sudo ip link add ns1-veth0 type veth peer name ns2-veth0
+----------
+
+----------
+$ ip link show | grep veth
+3: ns2-veth0@ns1-veth0: <BROADCAST,MULTICAST,M-DOWN> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+4: ns1-veth0@ns2-veth0: <BROADCAST,MULTICAST,M-DOWN> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+----------
+
+----------
+$ sudo ip link set ns1-veth0 netns ns1
+$ sudo ip link set ns2-veth0 netns ns2
+----------
+
+----------
+$ ip link show | grep veth
+----------
+
+----------
+$ sudo ip netns exec ns1 ip link show | grep veth
+4: ns1-veth0@if3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+$ sudo ip netns exec ns2 ip link show | grep veth
+3: ns2-veth0@if4: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+----------
+
+----------
+$ sudo ip netns exec ns1 ip address add 192.0.2.1/24 dev ns1-veth0
+$ sudo ip netns exec ns2 ip address add 192.0.2.2/24 dev ns2-veth0
+----------
+
+----------
+$ sudo ip netns exec ns1 ip link show ns1-veth0 | grep state
+4: ns1-veth0@if3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+$ sudo ip netns exec ns2 ip link show ns2-veth0 | grep state
+3: ns2-veth0@if4: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+----------
+
+----------
+$ sudo ip netns exec ns1 ip link set ns1-veth0 up
+$ sudo ip netns exec ns2 ip link set ns2-veth0 up
+----------
+
+----------
+$ sudo ip netns exec ns1 ping -c 3 192.0.2.2
+PING 192.0.2.2 (192.0.2.2) 56(84) bytes of data.
+64 bytes from 192.0.2.2: icmp_seq=1 ttl=64 time=0.038 ms
+64 bytes from 192.0.2.2: icmp_seq=2 ttl=64 time=0.042 ms
+64 bytes from 192.0.2.2: icmp_seq=3 ttl=64 time=0.042 ms
+
+--- 192.0.2.2 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2045ms
+rtt min/avg/max/mdev = 0.038/0.040/0.042/0.007 ms
+----------
+
+----------
+$ sudo ip netns exec ns1 ping -c 3 192.0.2.2 -I 192.0.2.1
+PING 192.0.2.2 (192.0.2.2) from 192.0.2.1 : 56(84) bytes of data.
+64 bytes from 192.0.2.2: icmp_seq=1 ttl=64 time=0.026 ms
+64 bytes from 192.0.2.2: icmp_seq=2 ttl=64 time=0.042 ms
+64 bytes from 192.0.2.2: icmp_seq=3 ttl=64 time=0.054 ms
+
+--- 192.0.2.2 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2031ms
+rtt min/avg/max/mdev = 0.026/0.040/0.054/0.013 ms
+----------
