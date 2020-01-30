@@ -1,5 +1,5 @@
 ----------
-$ wget https://raw.githubusercontent.com/momijiame/linux-tcpip-book/master/sources/socket/httpclient.py
+$ wget https://raw.githubusercontent.com/momijiame/linux-tcpip-book/master/sources/8.socket/httpclient.py
 ----------
 
 ----------
