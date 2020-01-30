@@ -1,0 +1,26 @@
+----------
+$ sudo ip netns add helloworld
+----------
+
+----------
+$ ip netns list
+helloworld
+----------
+
+----------
+$ sudo ip netns exec helloworld ip address show
+1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+----------
+
+----------
+$ sudo ip netns exec helloworld ip route show
+----------
+
+----------
+$ sudo ip netns delete helloworld
+----------
+
+----------
+$ sudo ip netns exec helloworld bash
+----------
