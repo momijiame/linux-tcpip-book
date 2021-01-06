@@ -27,8 +27,8 @@ MASQUERADE  all  --  192.0.2.0/24         anywhere
 
 ----------
 $ sudo ip netns exec lan nc -lnv 54321
-Listening on [0.0.0.0] (family 0, port 54321)
-Connection from 203.0.113.1 38966 received!
+Listening on 0.0.0.0 54321
+Connection received on 203.0.113.1 48788
 Hello, World!
 ----------
 
@@ -36,8 +36,8 @@ Hello, World!
 $ sudo ip netns exec wan tcpdump -tnl -i wan-veth0 "tcp and port 54321"
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
 listening on wan-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
-IP 203.0.113.1.38966 > 203.0.113.254.54321: Flags [P.], seq 293054098:293054112, ack 1985223630, win 229, options [nop,nop,TS val 982243296 ecr 3183520966], length 14
-IP 203.0.113.254.54321 > 203.0.113.1.38966: Flags [.], ack 14, win 227, options [nop,nop,TS val 3183556354 ecr 982243296], length 0
+IP 203.0.113.1.48788 > 203.0.113.254.54321: Flags [P.], seq 1647386507:1647386521, ack 1045484319, win 502, options [nop,nop,TS val 2177472125 ecr 352382749], length 14
+IP 203.0.113.254.54321 > 203.0.113.1.48788: Flags [.], ack 14, win 509, options [nop,nop,TS val 352403859 ecr 2177472125], length 0
 ----------
 
 ----------
@@ -50,6 +50,6 @@ Hello, World!
 $ sudo ip netns exec lan tcpdump -tnl -i lan-veth0 "tcp and port 54321"
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
 listening on lan-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
-IP 203.0.113.1.38966 > 192.0.2.1.54321: Flags [P.], seq 293054112:293054126, ack 1985223630, win 229, options [nop,nop,TS val 982287087 ecr 3183556354], length 14
-IP 192.0.2.1.54321 > 203.0.113.1.38966: Flags [.], ack 14, win 227, options [nop,nop,TS val 3183600145 ecr 982287087], length 0
+IP 203.0.113.1.48788 > 192.0.2.1.54321: Flags [P.], seq 1647386521:1647386535, ack 1045484319, win 502, options [nop,nop,TS val 2177899957 ecr 352403859], length 14
+IP 192.0.2.1.54321 > 203.0.113.1.48788: Flags [.], ack 14, win 509, options [nop,nop,TS val 352831691 ecr 2177899957], length 0
 ----------

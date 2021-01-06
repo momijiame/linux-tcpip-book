@@ -1,5 +1,10 @@
 ----------
-$ for ns in $(ip netns list | awk '{print $1}'); do sudo ip netns delete $ns; done
+$ sudo ip --all netns delete
+$ wget -O - https://raw.githubusercontent.com/momijiame/linux-tcpip-book/2nd-edition/scripts/dhcp.sh | bash
+----------
+
+----------
+$ sudo ip --all netns delete
 ----------
 
 ----------
@@ -29,20 +34,36 @@ $ sudo ip netns exec server ip address add 192.0.2.254/24 dev s-veth0
 $ sudo ip netns exec server dnsmasq \
   --dhcp-range=192.0.2.100,192.0.2.200,255.255.255.0 \
   --interface=s-veth0 \
+  --port 0 \
+  --no-resolv \
   --no-daemon
 ----------
 
 ----------
-$ sudo ip netns exec client dhclient c-veth0
+$ sudo ip netns exec client dhclient -d c-veth0
+Internet Systems Consortium DHCP Client 4.4.1
+Copyright 2004-2018 Internet Systems Consortium.
+All rights reserved.
+For info, please visit https://www.isc.org/software/dhcp/
+
+Listening on LPF/c-veth0/a2:ef:a4:8e:5b:9b
+Sending on   LPF/c-veth0/a2:ef:a4:8e:5b:9b
+Sending on   Socket/fallback
+DHCPDISCOVER on c-veth0 to 255.255.255.255 port 67 interval 3 (xid=0x6210f349)
+DHCPDISCOVER on c-veth0 to 255.255.255.255 port 67 interval 4 (xid=0x6210f349)
+DHCPOFFER of 192.0.2.195 from 192.0.2.254
+DHCPREQUEST for 192.0.2.195 on c-veth0 to 255.255.255.255 port 67 (xid=0x49f31062)
+DHCPACK of 192.0.2.195 from 192.0.2.254 (xid=0x6210f349)
+bound to 192.0.2.195 -- renewal in 1742 seconds.
 ----------
 
 ----------
 $ sudo ip netns exec client ip address show | grep "inet "
-    inet 192.0.2.152/24 brd 192.0.2.255 scope global c-veth0
+    inet 192.0.2.195/24 brd 192.0.2.255 scope global dynamic c-veth0
 ----------
 
 ----------
 $ sudo ip netns exec client ip route show
 default via 192.0.2.254 dev c-veth0 
-192.0.2.0/24 dev c-veth0 proto kernel scope link src 192.0.2.152 
+192.0.2.0/24 dev c-veth0 proto kernel scope link src 192.0.2.195
 ----------

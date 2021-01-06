@@ -1,11 +1,17 @@
 ----------
-$ for ns in $(ip netns list | awk '{print $1}'); do sudo ip netns delete $ns; done
+$ sudo ip --all netns delete
+$ wget -O - https://raw.githubusercontent.com/momijiame/linux-tcpip-book/2nd-edition/scripts/bridge.sh | bash
+----------
+
+----------
+$ sudo ip --all netns delete
 ----------
 
 ----------
 $ sudo ip netns add ns1
 $ sudo ip netns add ns2
 $ sudo ip netns add ns3
+$ sudo ip netns add bridge
 ----------
 
 ----------
@@ -18,12 +24,18 @@ $ sudo ip link add ns3-veth0 type veth peer name ns3-br0
 $ sudo ip link set ns1-veth0 netns ns1
 $ sudo ip link set ns2-veth0 netns ns2
 $ sudo ip link set ns3-veth0 netns ns3
+$ sudo ip link set ns1-br0 netns bridge
+$ sudo ip link set ns2-br0 netns bridge
+$ sudo ip link set ns3-br0 netns bridge
 ----------
 
 ----------
 $ sudo ip netns exec ns1 ip link set ns1-veth0 up
 $ sudo ip netns exec ns2 ip link set ns2-veth0 up
 $ sudo ip netns exec ns3 ip link set ns3-veth0 up
+$ sudo ip netns exec bridge ip link set ns1-br0 up
+$ sudo ip netns exec bridge ip link set ns2-br0 up
+$ sudo ip netns exec bridge ip link set ns3-br0 up
 ----------
 
 ----------
@@ -39,17 +51,14 @@ $ sudo ip netns exec ns3 ip link set dev ns3-veth0 address 00:00:5E:00:53:03
 ----------
 
 ----------
-$ sudo ip link add dev br0 type bridge
-$ sudo ip link set br0 up
+$ sudo ip netns exec bridge ip link add dev br0 type bridge
+$ sudo ip netns exec bridge ip link set br0 up
 ----------
 
 ----------
-$ sudo ip link set ns1-br0 master br0
-$ sudo ip link set ns2-br0 master br0
-$ sudo ip link set ns3-br0 master br0
-$ sudo ip link set ns1-br0 up
-$ sudo ip link set ns2-br0 up
-$ sudo ip link set ns3-br0 up
+$ sudo ip netns exec bridge ip link set ns1-br0 master br0
+$ sudo ip netns exec bridge ip link set ns2-br0 master br0
+$ sudo ip netns exec bridge ip link set ns3-br0 master br0
 ----------
 
 ----------
@@ -101,7 +110,7 @@ listening on ns3-veth0, link-type EN10MB (Ethernet), capture size 262144 bytes
 ----------
 
 ----------
-$ bridge fdb show br br0 | grep -i 00:00:5e
+$ sudo ip netns exec bridge bridge fdb show br br0 | grep -i 00:00:5e
 00:00:5e:00:53:01 dev ns1-br0 master br0 
 00:00:5e:00:53:02 dev ns2-br0 master br0 
 00:00:5e:00:53:03 dev ns3-br0 master br0 

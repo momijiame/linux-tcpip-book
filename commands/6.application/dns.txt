@@ -27,14 +27,3 @@ IP 8.8.8.8.53 > 10.0.2.15.51746: 1521$ 1/0/1 A 93.184.216.34 (56)
 $ dig +short @8.8.8.8 example.org A
 93.184.216.34
 ----------
-
-----------
-$ grep nameserver /etc/resolv.conf
-nameserver 127.0.0.53
-----------
-
-----------
-$ sudo ss -tulnp | grep :53
-udp   UNCONN  0        0              127.0.0.53%lo:53            0.0.0.0:*      users:(("systemd-resolve",pid=747,fd=12))
-tcp   LISTEN  0        128            127.0.0.53%lo:53            0.0.0.0:*      users:(("systemd-resolve",pid=747,fd=13))
-----------

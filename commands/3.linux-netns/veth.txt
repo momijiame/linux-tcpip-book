@@ -1,4 +1,8 @@
 ----------
+$ wget -O - https://raw.githubusercontent.com/momijiame/linux-tcpip-book/2nd-edition/scripts/single-segment.sh | bash
+----------
+
+----------
 $ sudo ip netns add ns1
 $ sudo ip netns add ns2
 ----------
