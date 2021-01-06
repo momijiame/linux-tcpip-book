@@ -40,11 +40,11 @@ Serving HTTP on 127.0.0.1 port 80 (http://127.0.0.1:80/) ...
 ----------
 $ echo -en "GET / HTTP/1.0\r\n\r\n" | nc 127.0.0.1 80
 HTTP/1.0 200 OK
-Server: SimpleHTTP/0.6 Python/3.6.8
-Date: Sat, 21 Dec 2019 06:57:13 GMT
+Server: SimpleHTTP/0.6 Python/3.8.5
+Date: Tue, 05 Jan 2021 21:10:20 GMT
 Content-type: text/html
 Content-Length: 127
-Last-Modified: Sat, 21 Dec 2019 03:44:25 GMT
+Last-Modified: Tue, 05 Jan 2021 21:09:40 GMT
 
 <!doctype html>
 <html>
@@ -60,11 +60,11 @@ Last-Modified: Sat, 21 Dec 2019 03:44:25 GMT
 ----------
 $ curl -X GET -D - http://127.0.0.1/
 HTTP/1.0 200 OK
-Server: SimpleHTTP/0.6 Python/3.6.8
-Date: Sat, 21 Dec 2019 08:39:47 GMT
+Server: SimpleHTTP/0.6 Python/3.8.5
+Date: Tue, 05 Jan 2021 21:10:46 GMT
 Content-type: text/html
 Content-Length: 127
-Last-Modified: Sat, 21 Dec 2019 03:44:25 GMT
+Last-Modified: Tue, 05 Jan 2021 21:09:40 GMT
 
 <!doctype html>
 <html>

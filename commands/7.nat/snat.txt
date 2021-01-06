@@ -1,5 +1,10 @@
 ----------
-$ for ns in $(ip netns list | awk '{print $1}'); do sudo ip netns delete $ns; done
+$ sudo ip --all netns delete
+$ wget -O - https://raw.githubusercontent.com/momijiame/linux-tcpip-book/2nd-edition/scripts/nat.sh | bash
+----------
+
+----------
+$ sudo ip --all netns delete
 ----------
 
 ----------

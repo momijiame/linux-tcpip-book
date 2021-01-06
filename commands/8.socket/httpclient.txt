@@ -5,11 +5,11 @@ $ wget https://raw.githubusercontent.com/momijiame/linux-tcpip-book/master/sourc
 ----------
 $ python3 httpclient.py
 HTTP/1.0 200 OK
-Server: SimpleHTTP/0.6 Python/3.6.8
-Date: Sun, 22 Dec 2019 13:40:25 GMT
+Server: SimpleHTTP/0.6 Python/3.8.5
+Date: Tue, 05 Jan 2021 21:12:21 GMT
 Content-type: text/html
 Content-Length: 127
-Last-Modified: Sat, 21 Dec 2019 03:44:25 GMT
+Last-Modified: Tue, 05 Jan 2021 21:09:40 GMT
 
 <!doctype html>
 <html>
